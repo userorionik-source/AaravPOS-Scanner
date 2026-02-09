@@ -8,3 +8,5 @@ certs/
 *.AppImage
 *.deb
 *.dmg
+.vercel
+# .env*.local
