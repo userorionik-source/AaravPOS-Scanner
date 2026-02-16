@@ -275,7 +275,7 @@ Issued (UTC):    2025-11-18 03:50:01
         tooltip: "Barcode contains invalid character '{'. Please remove it."
       };
     }
-    
+
     if (barcode.length > BARCODE_MAX_LEN) {
       return {
         isValid: false,
@@ -283,7 +283,7 @@ Issued (UTC):    2025-11-18 03:50:01
         tooltip: `Barcode is ${barcode.length} characters. Maximum allowed is ${BARCODE_MAX_LEN}.`
       };
     }
-    
+
     return { isValid: true, message: '', tooltip: '' };
   }, []);
 
@@ -373,7 +373,7 @@ Issued (UTC):    2025-11-18 03:50:01
 
     const barcode = extractBarcodeFromText(textToPrint);
     const validation = validateBarcode(barcode);
-    
+
     if (!validation.isValid) {
       setBarcodeError(validation.message);
     } else {
@@ -775,7 +775,7 @@ Issued (UTC):    2025-11-18 03:50:01
     // Validate barcode before proceeding
     const barcode = extractBarcodeFromText(textToPrint);
     const validation = validateBarcode(barcode);
-    
+
     if (!validation.isValid) {
       addLog(`Cannot print: ${validation.message}`, 'error');
       return;
@@ -860,7 +860,7 @@ Issued (UTC):    2025-11-18 03:50:01
 
   const handleOpenCashDrawer = useCallback(async () => {
     if (!selectedPrinter && connectionMode !== 'demo') {
-      addLog('Please select a printer first', 'warning');
+      addLog('⚠️ Please select a printer first', 'warning');
       return;
     }
 
@@ -870,30 +870,30 @@ Issued (UTC):    2025-11-18 03:50:01
 
       return new Promise((resolve, reject) => {
         if (sendMessage({
-          type: 'open_cash_drawer',
+          type: 'print_text',   // 👈 change here
           requestId: reqId,
           payload: {
-            printerName: selectedPrinter || 'Demo Printer'
+            printerName: selectedPrinter || 'Demo Printer',
+            text: textToPrint,
+            openDrawer: true   // 👈 send flag
           }
         })) {
-          addLog(`Opening cash drawer on ${selectedPrinter || 'Demo Printer'}...`, 'info');
+          addLog(`🖨️ Printing + Opening drawer...`, 'info');
           resolve();
         } else {
-          addLog('Not connected to server', 'error');
           reject(new Error('Not connected'));
         }
       });
     };
 
     if (printQueue.current) {
-      const queueJob = printQueue.current.add(
+      printQueue.current.add(
         job,
         JOB_TYPES.CASH_DRAWER,
-        { printerName: selectedPrinter || 'Demo Printer', type: 'Open Cash Drawer' }
+        { printerName: selectedPrinter, type: 'Print + Open Drawer' }
       );
-      addLog(`Cash drawer job added to queue (ID: ${queueJob.id.substring(0, 8)})`, 'info');
     }
-  }, [selectedPrinter, connectionMode, requestId, addLog, sendMessage]);
+  }, [selectedPrinter, connectionMode, requestId, addLog, sendMessage, textToPrint]);
 
   const handleRefreshPrinters = useCallback(() => {
     sendHealthCheck();
@@ -1083,7 +1083,7 @@ Issued (UTC):    2025-11-18 03:50:01
     <div className="app-container">
       <header className="app-header">
         <div className="header-title d-flex">
-          <Printer size={24} className='mr'/>
+          <Printer size={24} className='mr' />
           <h1>AaravPOS Print Server Tester</h1>
         </div>
         <div className="environment-badge">
@@ -1226,7 +1226,7 @@ Issued (UTC):    2025-11-18 03:50:01
         <div className="control-panel">
           <div className="card">
             <div className="card-title d-flex">
-              <Settings size={20} className='mr'/>
+              <Settings size={20} className='mr' />
               <h3>Manual Connection Settings</h3>
             </div>
 
@@ -1550,17 +1550,17 @@ Issued (UTC):    2025-11-18 03:50:01
               <span>Lines: {textToPrint.split('\n').length}</span>
               {connectionMode === 'demo' && <span className="demo-badge">DEMO</span>}
             </div>
-            
+
             {barcodeError && (
               <div className="barcode-error-box">
                 <AlertTriangle size={14} /> {barcodeError}
               </div>
             )}
-            
+
             <div className={`barcode-counter ${getBarcodeCharacterCount().isValid ? '' : getBarcodeCharacterCount().count > BARCODE_MAX_LEN ? 'error' : 'warning'}`}>
               Barcode: {getBarcodeCharacterCount().count}/{BARCODE_MAX_LEN} characters
             </div>
-            
+
             <div className="text-actions">
               <button
                 className="btn btn-sm"
